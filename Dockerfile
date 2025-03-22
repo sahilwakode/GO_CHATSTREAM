@@ -2,6 +2,10 @@
 FROM node:20 AS frontend
 WORKDIR /app
 COPY frontend/package*.json ./
+
+# Use OpenSSL legacy provider
+ENV NODE_OPTIONS="--openssl-legacy-provider"
+
 RUN npm install
 COPY frontend/ ./
 RUN npm run build
@@ -18,16 +22,9 @@ RUN go build -o main .
 FROM alpine:latest
 WORKDIR /app
 
-# Install SSL certs and copy both builds
 RUN apk --no-cache add ca-certificates
 COPY --from=backend /app/main .
 COPY --from=frontend /app/build ./public
 
-# Expose the backend port
 EXPOSE 9000
-
-# Start the Go backend server
 CMD ["./main"]
-
-
-
