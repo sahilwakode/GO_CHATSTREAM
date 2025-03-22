@@ -1,20 +1,27 @@
-version: '3'
+version: '3.8'
+
 services:
   frontend:
     build:
-      context: ./frontend
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
     ports:
-      - "3000:3000"
+      - "3000:3000"   # React dev server port
     volumes:
       - ./frontend:/app
-    command: ["npm", "start"]
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # Hot reloading in Docker
 
   backend:
     build:
-      context: ./backend
+      context: .
+      dockerfile: Dockerfile
+      target: backend
     ports:
-      - "9000:9000"
+      - "9000:9000"   # Go server port
     volumes:
       - ./backend:/app
-    command: ["go", "run", "main.go"]
-
+    environment:
+      - PORT=9000
