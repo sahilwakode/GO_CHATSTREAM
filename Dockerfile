@@ -1,30 +1,28 @@
-# --- Build React Frontend ---
-FROM node:20 AS frontend
+# --- Frontend Service ---
+FROM node:12.13 AS frontend
 WORKDIR /app
+
+# Install dependencies
 COPY frontend/package*.json ./
-
-# Use OpenSSL legacy provider
-ENV NODE_OPTIONS="--openssl-legacy-provider"
-
 RUN npm install
-COPY frontend/ ./
-RUN npm run build
 
-# --- Build Go Backend ---
+# Copy the frontend code
+COPY frontend/ ./
+
+# Start React dev server
+CMD ["nvm", "use", "12.13", "&&", "npm", "start"]
+
+---
+
+# --- Backend Service ---
 FROM golang:1.21 AS backend
 WORKDIR /app
+
+# Copy Go files
 COPY backend/go.mod backend/go.sum ./
 RUN go mod download
+
 COPY backend/ ./
-RUN go build -o main .
 
-# --- Final Container ---
-FROM alpine:latest
-WORKDIR /app
-
-RUN apk --no-cache add ca-certificates
-COPY --from=backend /app/main .
-COPY --from=frontend /app/build ./public
-
-EXPOSE 9000
-CMD ["./main"]
+# Start Go backend server
+CMD ["go", "run", "main.go"]
