@@ -1,5 +1,5 @@
-# Use official Node.js 12 image with npm pre-installed
-FROM node:12.22.12-buster-slim
+# Use Node.js 18 LTS (Buster) with npm pre-installed
+FROM node:18.18.2-buster-slim
 
 # Install Go 1.21
 RUN apt-get update && apt-get install -y wget
@@ -17,7 +17,7 @@ RUN cd backend && go mod download
 
 # Copy frontend dependencies
 COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm install
+RUN cd frontend && npm install --force
 
 # Copy all source files
 COPY . .
@@ -25,8 +25,9 @@ COPY . .
 # Build Go binary
 RUN cd backend && go build -o main .
 
-# Expose ports
+# Expose required ports
 EXPOSE 3000 9000
 
-# Start services
-CMD ["sh", "-c", "cd frontend && npm start & cd backend && ./main"]
+# Start services using PM2 process manager
+RUN npm install -g pm2
+CMD ["pm2-runtime", "ecosystem.config.js"]
